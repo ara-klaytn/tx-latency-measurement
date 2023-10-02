@@ -173,7 +173,6 @@ async function sendTx() {
 
     //create value transfer transaction
     const tx = {
-      nonce: currentNonce,
       from: signer.address,
       to: signer.address,
       value: web3.utils.toWei("0", "ether"),
@@ -209,19 +208,17 @@ async function sendTx() {
           Number(web3.utils.fromWei(Number(receipt.effectiveGasPrice), "ether"));
       });
 
-    currentNonce = currentNonce + 1;
-
     // Calculate Transaction Fee and Get Tx Fee in USD
-    var MATICtoUSD;
+    var ARBtoUSD;
     await CoinGeckoClient.simple
       .price({
-        ids: ["matic-network"],
+        ids: ["arbitrum"],
         vs_currencies: ["usd"],
       })
       .then((response) => {
-        MATICtoUSD = response.data["matic-network"]["usd"];
+        ARBtoUSD = response.data["arbitrum"]["usd"];
       });
-    data.txFeeInUSD = data.txFee * MATICtoUSD;
+    data.txFeeInUSD = data.txFee * ARBtoUSD;
 
     // console.log(`${data.executedAt},${data.chainId},${data.txhash},${data.startTime},${data.endTime},${data.latency},${data.txFee},${data.txFeeInUSD},${data.resourceUsedOfLatestBlock},${data.numOfTxInLatestBlock},${data.pingTime},${data.error}`)
   } catch (err) {

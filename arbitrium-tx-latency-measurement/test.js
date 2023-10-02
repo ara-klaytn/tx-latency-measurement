@@ -1,5 +1,6 @@
 const { Web3 } = require("web3");
 const { Address } = require("@arbitrum/sdk");
+const CoinGecko = require("coingecko-api");
 
 async function test() {
   let rpc = "https://goerli-rollup.arbitrum.io/rpc";
@@ -26,11 +27,33 @@ async function test2() {
     "0xccbc7ef19b17de87ebada389ab291a36107d2d42664523d70d46050b7d32111f"
   );
 
-  const latestNonce = Number(await web3.eth.getTransactionCount(signer.address, "pending"));
-  console.log(latestNonce);
+  const CoinGeckoClient = new CoinGecko();
 
-  const accountNonce = "0x" + (web3.eth.getTransactionCount(signer.address) + 1).toString(16);
-  console.log(accountNonce);
+  var ARBtoUSD;
+  await CoinGeckoClient.simple
+    .price({
+      ids: ["arbitrum"],
+      vs_currencies: ["usd"],
+    })
+    .then((response) => {
+      ARBtoUSD = response.data["arbitrum"]["usd"];
+      console.log("ARBtoUSD", ARBtoUSD);
+    });
+
+  let txFee = 0.0000021000000000000002;
+  let txFeeUSD = txFee * ARBtoUSD;
+  console.log(txFeeUSD);
+
+  // var SUItoUSD;
+  // await CoinGeckoClient.simple
+  //   .price({
+  //     ids: ["arbitrum"],
+  //     vs_currencies: ["usd"],
+  //   })
+  //   .then((response) => {
+  //     SUItoUSD = response.data["arbitrum"]["usd"];
+  //     console.log("SUItoUSD", SUItoUSD);
+  //   });
 }
 
 test2();
