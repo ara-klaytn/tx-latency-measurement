@@ -1,7 +1,7 @@
 // Klaytn transaction latency measurement.
 // Reference of Sending Transaction using CaverJS: https://docs.kaikas.io/02_api_reference/02_caver_methods
 const fs = require("fs");
-const Caver = require("caver-js");
+const { generateWallet, restoreWallet, getQueryClient } = require("@sei-js/core");
 const axios = require("axios");
 const path = require("path");
 var parquet = require("parquetjs-lite");
@@ -46,7 +46,7 @@ async function uploadToGCS(data) {
   });
 
   const filename = await makeParquetFile(data);
-  const destFileName = `tx-latency-measurement/klaytn/${filename}`;
+  const destFileName = `tx-latency-measurement/sei/${filename}`;
 
   async function uploadFile() {
     const options = {
@@ -159,12 +159,15 @@ async function sendTx() {
   };
 
   try {
-    const caver = new Caver(process.env.CAVER_URL);
-    const keyring = caver.wallet.keyring.createFromPrivateKey(process.env.PRIVATE_KEY);
+    const queryClient = await getQueryClient(process.env.PUBLIC_URL);
 
-    caver.wallet.add(keyring);
+    const restoredWallet = await restoreWallet(process.env.MNEMONIC);
 
-    checkBalance(keyring.address);
+    const acc = await restoredWallet.getAccounts();
+    const pubAdd = acc[0].address;
+    let address = pubAdd;
+
+    const balances = await queryClient.cosmos.bank.v1beta1.allBalances({ address });
 
     // Create value transfer transaction
     const vt = caver.transaction.valueTransfer.create({
@@ -234,11 +237,13 @@ async function main() {
   console.log(`starting tx latency measurement... start time = ${start}`);
 
   if (process.env.PRIVATE_KEY === "") {
-    const caver = new Caver(process.env.CAVER_URL);
-    const keyring = caver.wallet.keyring.generate();
-    console.log(`Private key is not defined. Use this new private key(${keyring.key.privateKey}).`);
-    console.log(`Get test KLAY from the faucet: https://baobab.wallet.klaytn.foundation/faucet`);
-    console.log(`Your Klaytn address = ${keyring.address}`);
+    const generatedWallet = await generateWallet();
+    console.log("generated mnemonic", generatedWallet.mnemonic);
+    console.log(`Mnemonic is not defined. Use this new Mnemonic(${keyring.key.privateKey}).`);
+    console.log(`Get test KLAY from the faucet: https://www.allthatnode.com/faucet/sei.dsrv`);
+    const acc = await generatedWallet.getAccounts();
+    console.log(`Your Klaytn address = ${acc[0].address}`);
+
     return;
   }
 

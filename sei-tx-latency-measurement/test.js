@@ -1,28 +1,44 @@
-const { generateWallet, restoreWallet, getQueryClient } = require("@sei-js/core");
+const {
+  generateWallet,
+  restoreWallet,
+  getQueryClient,
+  getSigningClient,
+  getSigningCosmWasmClient,
+} = require("@sei-js/core");
+
+const { calculateFee } = require("@cosmjs/stargate");
 
 async function yes() {
   // 12 word mnemonic by default
-  const generatedWallet = await generateWallet();
-  //console.log('generated mnemonic', generatedWallet.mnemonic);
+  // const generatedWallet = await generateWallet();
+  // console.log("generated mnemonic", generatedWallet.mnemonic);
 
   // or restore a wallet given a seed phrase
-  const restoredWallet = await restoreWallet(
-    "seven sample green convince fire utility filter noise venture off stock title"
+  const wallet = await restoreWallet(
+    "olive scatter put display depend album tray fold sail pull tube certain"
+  );
+  const [acc] = await wallet.getAccounts();
+  console.log(acc);
+
+  let RPC_URL = "https://rpc.atlantic-2.seinetwork.io/";
+
+  //const { offlineSigner } = await connect("keplr", "atlantic-2");
+  const client = await getSigningClient(RPC_URL, wallet);
+
+  const amount = [{ amount: "10", denom: "sei" }];
+  const fee = {
+    amount,
+    gas: "100000",
+  };
+
+  const sendResponse = await client.sendTokens(
+    acc.address,
+    "sei1ucttvx068mmpph905uyf8c9rqhhjgp27wl2gh8",
+    amount,
+    fee
   );
 
-  const acc = await restoredWallet.getAccounts();
-  const pubAdd = acc[0].address;
-  console.log(pubAdd);
-
-  const queryClient = await getQueryClient("https://rpc.atlantic-2.seinetwork.io/").catch((err) => {
-    console.log(err);
-    return null;
-  });
-  const balance = await queryClient.cosmos.bank.v1beta1.allBalances(pubAdd).catch((err) => {
-    console.log(err);
-    return null;
-  });
-  console.log(balance);
+  console.log(sendResponse);
 }
 
 yes();
