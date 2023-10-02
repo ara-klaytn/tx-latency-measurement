@@ -245,8 +245,10 @@ async function main() {
   if (privateKey === "") {
     const account = web3.eth.accounts.create(web3.utils.randomHex(32));
     console.log(`Private key is not defined. Use this new private key(${account.privateKey}).`);
-    console.log(`Get test MATIC from the faucet: https://faucet.polygon.technology/`);
-    console.log(`Your Polygon address = ${account.privateKey}`);
+    console.log(
+      `Get test MATIC from the faucet: https://faucet.triangleplatform.com/arbitrum/goerli`
+    );
+    console.log(`Your Arbitrum address = ${account.address}`);
     return;
   }
 
