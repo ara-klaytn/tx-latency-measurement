@@ -1,0 +1,36 @@
+const { Web3 } = require("web3");
+const { Address } = require("@arbitrum/sdk");
+
+async function test() {
+  let rpc = "https://goerli-rollup.arbitrum.io/rpc";
+  const provider = new Web3.providers.HttpProvider(rpc);
+  const web3 = new Web3(provider);
+
+  let add = "0xAEFCE1c39615010c0C56c0939fB492585e54A7d5";
+  const account = web3.eth.accounts.create();
+  let priv = account.privateKey;
+  const signer = web3.eth.accounts.privateKeyToAccount(
+    "0xccbc7ef19b17de87ebada389ab291a36107d2d42664523d70d46050b7d32111f"
+  );
+  const balance = Number(await web3.eth.getBalance(signer.address)) * 10 ** -18; //in wei
+  console.log(balance);
+  console.log(signer.address);
+}
+
+async function test2() {
+  let rpc = "https://goerli-rollup.arbitrum.io/rpc";
+  const provider = new Web3.providers.HttpProvider(rpc);
+  const web3 = new Web3(provider);
+
+  const signer = web3.eth.accounts.privateKeyToAccount(
+    "0xccbc7ef19b17de87ebada389ab291a36107d2d42664523d70d46050b7d32111f"
+  );
+
+  const latestNonce = Number(await web3.eth.getTransactionCount(signer.address, "pending"));
+  console.log(latestNonce);
+
+  const accountNonce = "0x" + (web3.eth.getTransactionCount(signer.address) + 1).toString(16);
+  console.log(accountNonce);
+}
+
+test2();
