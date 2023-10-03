@@ -150,7 +150,7 @@ async function sendTx() {
 
     if (balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_ARB)) {
       sendSlackMsg(
-        `Current balance of <${process.env.SCOPE_URL}/address/${signer.address}|${signer.address}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_MATIC} MATIC! balance=${balance} MATIC`
+        `Current balance of <${process.env.SCOPE_URL}/address/${signer.address}|${signer.address}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_ARB} ARB! balance=${balance} ARB`
       );
     }
 
@@ -246,7 +246,7 @@ async function main() {
     const account = web3.eth.accounts.create(web3.utils.randomHex(32));
     console.log(`Private key is not defined. Use this new private key(${account.privateKey}).`);
     console.log(
-      `Get test MATIC from the faucet: https://faucet.triangleplatform.com/arbitrum/goerli`
+      `Get test ARB from the faucet: https://faucet.triangleplatform.com/arbitrum/goerli`
     );
     console.log(`Your Arbitrum address = ${account.address}`);
     return;
