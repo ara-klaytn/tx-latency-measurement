@@ -10,6 +10,8 @@ const axios = require('axios');
 const CoinGecko = require('coingecko-api');
 const {Storage} = require('@google-cloud/storage');
 const CoinGeckoClient = new CoinGecko();
+const {Keypair} = require("@solana/web3.js")
+const {sendAndConfirmTransaction} = require("@solana/web3.js")
 
 require('dotenv').config();
 var keypair = ""
@@ -173,19 +175,33 @@ async function sendZeroSol(){
     const start = new Date().getTime()
     data.startTime = start
 
+    /*  
+    ** Deprecated **
+
     // Send signed transaction and wait til confirmation
     const signature = await web3.sendAndConfirmRawTransaction(
       connection,
       tx.serialize(), // tx serialized in wire format
     )
+    */
+    
+
+    // updated transaction signing method
+    const res = await sendAndConfirmTransaction(
+        connection, 
+        tx, 
+        [keypair]
+      )
+    data.txhash = res;
+
 
     // Calc latency
     const end = new Date().getTime()
     data.endTime = end
     data.latency = end-start
-    data.txhash = signature // same with base58.encode(tx.signature)
+    //data.txhash = signature // same with base58.encode(tx.signature)
 
-    var SOLtoUSD;
+    var SOLtoUSD; 
     await CoinGeckoClient.simple.price({
       ids: ['solana'],
       vs_currencies: ['usd']
