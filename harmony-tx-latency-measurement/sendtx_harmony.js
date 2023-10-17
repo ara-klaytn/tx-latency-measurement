@@ -145,6 +145,9 @@ async function sendTx() {
     const signerAddress = signer.address;
 
     const balance = await web3.eth.getBalance(signerAddress);
+
+    console.log(`Current balance of ${signerAddress} is ${balance / 1e18} ONE`);
+
     if (balance / 1e18 < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_ONE)) {
       sendSlackMsg(
         `Current balance of <${

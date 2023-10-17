@@ -148,6 +148,7 @@ async function sendTx() {
     const signer = web3.eth.accounts.privateKeyToAccount(privateKey);
     const balance = Number(await web3.eth.getBalance(signer.address)) * 10 ** -18; //in wei
 
+    console.log(`Current balance of ${signer.address} is ${balance} ARB`);
     if (balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_ARB)) {
       sendSlackMsg(
         `Current balance of <${process.env.SCOPE_URL}/address/${signer.address}|${signer.address}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_ARB} ARB! balance=${balance} ARB`
@@ -176,7 +177,7 @@ async function sendTx() {
       from: signer.address,
       to: signer.address,
       value: web3.utils.toWei("0", "ether"),
-      gas: 21000,
+      gas: 500000,
       gasPrice: await web3.eth.getGasPrice(),
     };
 
@@ -206,7 +207,8 @@ async function sendTx() {
         data.txFee =
           Number(receipt.gasUsed) *
           Number(web3.utils.fromWei(Number(receipt.effectiveGasPrice), "ether"));
-      });
+      })
+      .catch(console.error);
 
     // Calculate Transaction Fee and Get Tx Fee in USD
     var ARBtoUSD;

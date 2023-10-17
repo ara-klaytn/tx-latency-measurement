@@ -265,7 +265,7 @@ async function main() {
     return;
   }
 
-  // run sendTx every 1 min.
+  // run sendTx every 1 min..
   const interval = eval(process.env.SEND_TX_INTERVAL);
   setInterval(() => {
     sendTx();

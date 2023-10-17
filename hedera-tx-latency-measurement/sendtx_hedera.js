@@ -141,7 +141,7 @@ async function sendTx(){
         const balance = await new AccountBalanceQuery() // Requesting an account balance is currently free: $0.000
             .setAccountId(client.operatorAccountId)
             .execute(client);
-        
+
         const accountID = client.operatorAccountId.toString()
 
         if(balance.hbars.toBigNumber().toNumber() < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_HBAR))

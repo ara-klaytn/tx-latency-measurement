@@ -143,6 +143,8 @@ async function sendTx(){
         const account = await networkProvider.getAccount(address);
         const balance = account.balance.toNumber()*(10**(-18))
 
+        console.log(`Current balance of ${address.toString()} is ${balance} EGLD`)
+
         if(balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_EGLD))
         {
             sendSlackMsg(`Current balance of <${process.env.SCOPE_URL}/accounts/${address.toString()}|${address.toString()}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_EGLD} EGLD! balance=${balance} EGLD`)

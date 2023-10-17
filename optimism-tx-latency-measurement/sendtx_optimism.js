@@ -148,6 +148,8 @@ async function sendTx() {
     const signer = web3.eth.accounts.privateKeyToAccount(privateKey);
     const balance = Number(await web3.eth.getBalance(signer.address)) * 10 ** -18; //in wei
 
+    console.log(`Current balance of ${signer.address} is ${balance} OPT`);
+
     if (balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_OPT)) {
       sendSlackMsg(
         `Current balance of <${process.env.SCOPE_URL}/address/${signer.address}|${signer.address}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_OPT} OPT! balance=${balance} OPT`

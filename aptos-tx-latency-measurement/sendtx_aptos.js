@@ -180,6 +180,8 @@ async function sendTx() {
     const coinClient = new CoinClient(client);
     const balance = await coinClient.checkBalance(account);
 
+    console.log(`Current balance of ${address} is ${balance} APTOS`);
+
     if (balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_APTOS)) {
       sendSlackMsg(
         `Current balance of <${process.env.SCOPE_URL}/address/${address}|${address}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_APTOS} APTOS! balance=${balance} APTOS`
@@ -200,7 +202,10 @@ async function sendTx() {
     // Transaction latency
     const start = new Date().getTime();
     data.startTime = start;
-    let txnHash = await coinClient.transfer(account, account, 0, { gasUnitPrice: BigInt(100) });
+    let txnHash = await coinClient.transfer(account, account, 0, {
+      gasUnitPrice: BigInt(100),
+      maxGasAmount: BigInt(10),
+    });
     const end = new Date().getTime();
 
     data.txhash = txnHash;

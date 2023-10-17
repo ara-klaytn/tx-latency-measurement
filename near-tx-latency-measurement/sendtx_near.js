@@ -10,6 +10,8 @@ const CoinGecko = require('coingecko-api');
 const fs = require('fs');
 const CoinGeckoClient = new CoinGecko();
 const {Storage} = require('@google-cloud/storage');
+const { keyStores, KeyPair } = nearAPI
+const { connect } = nearAPI;
  
 //this is required if using a local .env file for private key
 require('dotenv').config();
@@ -18,8 +20,10 @@ require('dotenv').config();
 // the amount is converted into yoctoNEAR (10^-24) using a near-api-js utility
 const sender = process.env.SENDER_ACCOUNT_ID;
 const networkId = process.env.NETWORK_ID;
-const amount = nearAPI.utils.format.parseNearAmount('0.0');
+const amount = "0";
 var PrevNonce = null;
+
+/*   DEPREACTED
 
 // sets up a NEAR API/RPC provider to interact with the blockchain
 const provider = new nearAPI.providers
@@ -27,8 +31,10 @@ const provider = new nearAPI.providers
       url :`https://rpc.${networkId}.near.org`,
   });
 
-// creates keyPair used to sign transaction
-var keyPair;
+  */
+
+
+  
 
 async function makeParquetFile(data) {
     var schema = new parquet.ParquetSchema({
@@ -146,44 +152,49 @@ async function sendTx() {
     }
 
     try {
-        const accountInfo = await provider.query({
-            request_type: "view_account",
-            finality: "final",
-            account_id: sender,
-        });
-        const balance = Number(accountInfo.amount) * (10**(-24))
+        const myKeyStore = new keyStores.InMemoryKeyStore();
+        const PRIVATE_KEY = process.env.SENDER_PRIVATE_KEY;
+        // creates a public / private key pair using the provided private key
+        const keyPair = KeyPair.fromString(PRIVATE_KEY);
+        // adds the keyPair you created to keyStore
+        await myKeyStore.setKey(process.env.NETWORK_ID,process.env.SENDER_ACCOUNT_ID, keyPair);
+        const connectionConfig = {
+        networkId: "testnet",
+        keyStore: myKeyStore, // first create a key store 
+        nodeUrl: "https://rpc.testnet.near.org",
+        walletUrl: "https://wallet.testnet.near.org",
+        helperUrl: "https://helper.testnet.near.org",
+        explorerUrl: "https://explorer.testnet.near.org",
+      };
+        
+        const nearConnection = await connect(connectionConfig);
+        const account = await nearConnection.account(process.env.SENDER_ACCOUNT_ID)
+        const totalBalance = await account.getAccountBalance();
+        const balance = totalBalance.available* (10**(-24));
         if(balance < parseFloat(process.env.BALANCE_ALERT_CONDITION_IN_NEAR))
         {
             sendSlackMsg(`Current balance of <${process.env.SCOPE_URL}/accounts/${sender}|${sender}> is less than ${process.env.BALANCE_ALERT_CONDITION_IN_NEAR} NEAR! balance=${balance} NEAR`)
         }
 
         // gets sender's public key
-        const publicKey = keyPair.getPublicKey();
+        const accessKey = await account.getAccessKeys();
 
-        // gets sender's public key information from NEAR blockchain 
-        const accessKey = await provider.query(
-            `access_key/${sender}/${publicKey.toString()}`, ''
-        );
+        const publicKey = keyPair.getPublicKey()
 
+        console.log(`public key = ${publicKey.toString()}`)
+  
         // checks to make sure provided key is a full access key
-        if(accessKey.permission !== 'FullAccess') {
+        if(accessKey[0].access_key.permission !== 'FullAccess') {
             return console.log(
                 `Account [ ${sender} ] does not have permission to send tokens using key: [ ${publicKey} ]`
             );
         }
 
-        // each transaction requires a unique number or nonce
-        // this is created by taking the current nonce and incrementing it
-        const nonce = ++accessKey.nonce;
-        //check nonce 
-        if (nonce == PrevNonce)
-        {
-            // console.log(`Nonce ${nonce} = ${PrevNonce}`)
-            return;
-        }
-
-        // constructs actions that will be passed to the createTransaction method below
-        const actions = [nearAPI.transactions.transfer(amount)];
+        await account.sendMoney(
+        process.env.SENDER_ACCOUNT_ID, // receiver account
+        "0" // amount in yoctoNEAR
+        );
+       
 
         // converts a recent block hash into an array of bytes 
         // this hash was retrieved earlier when creating the accessKey 
@@ -223,8 +234,6 @@ async function sendTx() {
             sender, 
             publicKey, 
             sender,
-            nonce,
-            actions,
             recentBlockHash
         );
 
@@ -306,8 +315,6 @@ async function main (){
         return
     }
 
-    keyPair = nearAPI.utils.key_pair.KeyPairEd25519.fromString(process.env.SENDER_PRIVATE_KEY);
-    
     // run sendTx every SEND_TX_INTERVAL(sec).
     const interval = eval(process.env.SEND_TX_INTERVAL)
         setInterval(()=>{
